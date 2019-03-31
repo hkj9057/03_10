@@ -2,10 +2,10 @@
 code 설명
 save is model
 """
-from torch.utils.data.dataset import Dateset
+from torch.utils.data.dataset import Dataset
 import torch
-from cnn_model import Cnn_Model
-from my_dataset import NKDataSet
+from deep3_03_17 import Cnn_Model
+from my_dataset import NkDataSet
 from tensorboardX import SummaryWriter
 import argparse
 import time
@@ -69,7 +69,7 @@ def train(my_dataset_loader,model,criterion,optimizer,epoch,writer):
     model.train()
 
     losses = AverageMeter()
-    topl = AverageMeter()
+    top1 = AverageMeter()
 
     for i, data in enumerate(my_dataset_loader, 0):
         # Forward pass: Compute predicted y by passing x to the model
@@ -100,15 +100,15 @@ def train(my_dataset_loader,model,criterion,optimizer,epoch,writer):
         prec1 = accuracy(output.data, label)[0]
 
         losses.update(loss.item(), images.size(0))
-        topl.update(prec1.item(), images.size(0))
+        top1.update(prec1.item(), images.size(0))
 
     writer.add_scalar('Train/loss', losses.avg, epoch)
-    writer.add_scalar('Train/accuaracy', topl.avg, epoch)
+    writer.add_scalar('Train/accuaracy', top1.avg, epoch)
 
 def test(my_dataset_loader, model, criterion, epoch, test_writer):
     losses = AverageMeter()
-    topl = AverageMeter()
-    model.avgl()
+    top1 = AverageMeter()
+    model.eval()
 
     batch_time = AverageMeter()
     end = time.time()
@@ -130,7 +130,7 @@ def test(my_dataset_loader, model, criterion, epoch, test_writer):
         prec1 = accuracy(output.data, label)[0]
 
         losses.update(loss.item(), images.size(0))
-        topl.update(prec1.item(), images.size(0))
+        top1.update(prec1.item(), images.size(0))
 
         batch_time.update(time.time() - end)
         end = time.time()
@@ -140,13 +140,13 @@ def test(my_dataset_loader, model, criterion, epoch, test_writer):
             print('Test : [{0}/{1}]\t'
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                  'Prec@1 {topl.val:.3f} ({topl.avg:.3f})'.format(i
-                                                                  ,len(my_dataset_loader),batch_time=batch_time,loss=losses,tipl=topl))
+                  'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(i
+                                                                  ,len(my_dataset_loader),batch_time=batch_time,loss=losses,top1=top1))
 
-    print(' *, epoch : {epoch:.2f} Prec@1 {topl.avg:.3f}'.format(epoch=epoch,topl=topl))
+    print(' *, epoch : {epoch:.2f} Prec@1 {top1.avg:.3f}'.format(epoch=epoch,top1=top1))
 
     test_writer.add_scalar('Test/loss', losses.avg, epoch)
-    test_writer.add_scalar('Test/accuaracy', topl.avg, epoch)
+    test_writer.add_scalar('Test/accuaracy', top1.avg, epoch)
 
 #Data_Load
 csv_path = './test.csv'
@@ -156,7 +156,7 @@ my_dataset_loader = torch.utils.data.DataLoader(dataset=custom_dataset,
                                                 batch_size=2,
                                                 shuffle=False,
                                                 num_workers=1)
-moedl = Cnn_Model()
+model = Cnn_Model()
 
 #CrossEntropyLoss 를 사용
 criterion = torch.nn.CrossEntropyLoss(reduction='sum')
@@ -167,8 +167,8 @@ test_writer = SummaryWriter('./log/test')
 
 args.save_dir = 'save_dir'
 for epoch in range(500):
-    train(my_dataset_loader,moedl,criterion,optimizer,epoch,writer)
-    test(my_dataset_loader,moedl,criterion,epoch,test_writer)
+    train(my_dataset_loader,model,criterion,optimizer,epoch,writer)
+    test(my_dataset_loader,model,criterion,epoch,test_writer)
 
     save_checkpoint({'epoch': epoch + 1,
                      'state_dict': model.state_dict()
