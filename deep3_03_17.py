@@ -16,14 +16,14 @@ class Cnn_Model(torch.nn.Module):
         self.relu = torch.nn.ReLU()
         self.conv2 = torch.nn.Conv2d(20,2,kernel_size=3)
         #이 부분을 고쳐줘야 한다.
-        self.conv3 = torch.nn.Linear(18432,2)
+        self.conv3 = torch.nn.Linear(302,2)
 
 
     def forward(self, x):
 
         x = self.conv1(x)
 
-        #print("conv1 ".x.size())
+        print("conv1 ",x.size())
         x = self.relu(x)
         x = self.conv2(x)
 
